@@ -1,0 +1,18 @@
+# PlatformIO build artifacts
+.pio/
+
+# Node / Next.js
+**/node_modules/
+front-end/.next/
+front-end/out/
+front-end/.vercel/
+
+# Secrets — never commit real env files
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# OS cruft
+.DS_Store
+Thumbs.db
