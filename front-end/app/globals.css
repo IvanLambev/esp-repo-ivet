@@ -73,7 +73,22 @@ textarea {
   background: #fffafb;
 }
 
-textarea:focus {
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fffafb;
+  margin-bottom: 10px;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--rose);
 }
@@ -194,4 +209,11 @@ button:disabled {
   color: var(--muted);
   font-size: 14px;
   padding: 8px 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: 10px;
 }

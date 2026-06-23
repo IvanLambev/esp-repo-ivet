@@ -36,7 +36,27 @@ await sql`
     PRIMARY KEY (message_id, device_id)
   )`;
 
+await sql`
+  CREATE TABLE IF NOT EXISTS wifi_commands (
+    id            BIGSERIAL PRIMARY KEY,
+    ssid          TEXT NOT NULL,
+    password      TEXT NOT NULL,
+    target_device TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS wifi_command_acks (
+    command_id BIGINT NOT NULL REFERENCES wifi_commands(id) ON DELETE CASCADE,
+    device_id  TEXT NOT NULL,
+    status     TEXT NOT NULL,
+    detail     TEXT,
+    acked_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (command_id, device_id)
+  )`;
+
 await sql`CREATE INDEX IF NOT EXISTS idx_messages_id ON messages (id DESC)`;
+await sql`CREATE INDEX IF NOT EXISTS idx_wifi_commands_id ON wifi_commands (id DESC)`;
 
 const tables = await sql`
   SELECT table_name FROM information_schema.tables

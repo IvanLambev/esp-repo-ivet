@@ -27,6 +27,9 @@ npm run dev            # http://localhost:3000
 | POST   | `/api/send` `{body,from?}` | create a message (web: from=null; board: from=MAC) |
 | GET    | `/api/messages`            | recent notes + read-by info (dashboard)    |
 | GET    | `/api/devices`             | boards + last-seen (dashboard)             |
+| GET    | `/api/wifi?device=<MAC>`   | newest pending WiFi credential command for a board |
+| POST   | `/api/wifi` `{ssid,password,target?}` | queue WiFi credentials for all boards, or one board |
+| POST   | `/api/wifi/ack` `{device,id,status,detail?}` | mark a WiFi command handled by a board |
 
 ## Firmware
 
@@ -37,6 +40,12 @@ Vercel URL, then:
 python -m platformio run -t upload
 ```
 
-On first boot with no saved WiFi, the board opens a **`LoveBox-Setup`** Wi-Fi
-access point — join it to enter your WiFi credentials and server URL (persisted in
-flash). Hold the **PRG** button during boot to re-open that portal later.
+On boot, the board tries all WiFi credentials saved in flash. If none connect, it
+scans visible networks and tries the fallback password `12345678` once per SSID.
+If that still fails, it opens a **`LoveBox-Setup`** Wi-Fi access point — join it
+to enter your WiFi credentials and server URL (persisted in flash). Hold the
+**PRG** button during boot to re-open that portal later.
+
+The dashboard's **Remote WiFi** card queues new credentials through the API. Each
+online board saves the credentials on its next poll, then uses them on future
+boot/reconnect, which is useful before changing the router password.

@@ -38,6 +38,11 @@ export default function Home() {
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState([]);
   const [devices, setDevices] = useState([]);
+  const [wifiSsid, setWifiSsid] = useState("");
+  const [wifiPassword, setWifiPassword] = useState("");
+  const [wifiTarget, setWifiTarget] = useState("all");
+  const [wifiSaving, setWifiSaving] = useState(false);
+  const [wifiStatus, setWifiStatus] = useState("");
 
   const refresh = useCallback(async () => {
     try {
@@ -79,6 +84,33 @@ export default function Home() {
     },
     [text, sending, refresh]
   );
+
+  const queueWifi = useCallback(async () => {
+    const ssid = wifiSsid.trim();
+    if (!ssid || wifiPassword.length < 8 || wifiSaving) return;
+    setWifiSaving(true);
+    setWifiStatus("");
+    try {
+      const res = await fetch("/api/wifi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ssid,
+          password: wifiPassword,
+          target: wifiTarget === "all" ? null : wifiTarget,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setWifiPassword("");
+        setWifiStatus(`Queued WiFi update #${data.id}. Boards apply it on their next poll.`);
+      } else {
+        setWifiStatus(data.error || "Could not queue WiFi update.");
+      }
+    } finally {
+      setWifiSaving(false);
+    }
+  }, [wifiSsid, wifiPassword, wifiTarget, wifiSaving]);
 
   const onlineCount = devices.filter(
     (d) => d.last_seen && Date.now() - new Date(d.last_seen).getTime() < ONLINE_MS
@@ -132,6 +164,40 @@ export default function Home() {
             </div>
           );
         })}
+      </div>
+
+      <div className="card">
+        <h2>Remote WiFi</h2>
+        <input
+          value={wifiSsid}
+          onChange={(e) => setWifiSsid(e.target.value)}
+          placeholder="Network name"
+          maxLength={32}
+        />
+        <input
+          value={wifiPassword}
+          onChange={(e) => setWifiPassword(e.target.value)}
+          placeholder="Password"
+          type="password"
+          minLength={8}
+          maxLength={63}
+        />
+        <select value={wifiTarget} onChange={(e) => setWifiTarget(e.target.value)}>
+          <option value="all">All boxes</option>
+          {devices.map((d) => (
+            <option value={d.id} key={d.id}>
+              {d.label || shortId(d.id)}
+            </option>
+          ))}
+        </select>
+        <button
+          className="send"
+          onClick={queueWifi}
+          disabled={wifiSaving || !wifiSsid.trim() || wifiPassword.length < 8}
+        >
+          {wifiSaving ? "Queueing..." : "Queue WiFi update"}
+        </button>
+        {wifiStatus && <div className="hint">{wifiStatus}</div>}
       </div>
 
       <div className="card">
